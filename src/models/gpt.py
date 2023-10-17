@@ -6,12 +6,12 @@ from src.datasets.utils import *
 torch.manual_seed(435123)
 
 # hyperparamters
-context_length = 256
 vocab_size = 37
-n_embed = 384
-num_heads = 6
-n_layers = 6
 dropout = 0.2
+context_length = 8
+num_heads = 1
+n_embed = 4
+n_layers = 1
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 # -----------------------------------------------------
 

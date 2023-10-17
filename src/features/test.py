@@ -1,8 +1,5 @@
 from src.datasets.utils import *
 
-parts = [0]
-ratio = 0.8
-notes = read_interim_files(parts)
-train, test = train_test_split(ratio, notes)
-print(len(train))
-print(len(test))
+parts = [0,1,2,3,4,5,6]
+make_encodings()
+print("Done")

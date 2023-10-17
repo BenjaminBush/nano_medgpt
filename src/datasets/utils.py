@@ -5,6 +5,8 @@ from src.features.features import *
 import torch
 import pickle
 
+torch.manual_seed(456123)
+
 def read_raw_files(parts=[0,1,2,3,4,5,6], columns = ["note_id",
            "subject_id",
            "hadm_id_",
@@ -62,66 +64,47 @@ def write_interim_files():
             f.write(cleaned_notes)
         print("Finished writing chunk {}".format(str(i)))
 
+# Returns an array. Each element of the array corresponds to the notes for that part
 def read_interim_files(parts=[0,1,2,3,4,5,6]):
-    notes = ""
+    notes = []
     prefix = "00000000000"
     for i in range(0, 7):
+        notes.append("")
         fname = INTERIM_DATA_PATH + "cleaned_notes_" + prefix + str(i) + ".txt"
         with open(fname, "r") as f:
-            notes += f.readlines()[0]
+            notes[i] += f.readlines()[0]
     return notes
 
-def train_test_split(ratio=0.8, notes=None):
-    train_path = PROCESSED_DATA_PATH + "train.pt"
-    test_path = PROCESSED_DATA_PATH + "test.pt"
-
-    # If the data exists, then just read and return. 
-    if os.path.isfile(train_path) and os.path.isfile(test_path):
-        train = torch.load(train_path)
-        test = torch.load(test_path)
+def make_encodings(notes=None):
+    if notes is None:
+        notes = read_interim_files()
     
-    # Else, we need to generate and then write then the data to disk. 
-    else:
-        if notes is None:
-            notes = read_interim_files()
-       
-        n = len(notes)
 
-        # Encoding the notes will run into a memory error, so we need to chunk again
-        encodings = []
-        chunk_size = 1000000
-        start = 0
-        i = 0
-        n_chunks = n/chunk_size + 1
-        while start < n:
-            chunk = notes[start:start+chunk_size]
-            encoded_chunk = encode(chunk)
-            fpath = INTERIM_DATA_PATH + "encodings/chunk_" + str(start) + ".pkl"
-            with open(fpath, 'wb') as f:
-                pickle.dump(encoded_chunk, f)
+    # Encoding the notes will run into a memory error, so we need to chunk again
+    # encodings = []
+    # chunk_size = 1000000
+    # for i in range(len(notes)):
+    #     n = len(notes[i])
+    #     start = 0
+    #     while start < n:
+    #         chunk = notes[i][start:start+chunk_size]
+    #         encoded_chunk = encode(chunk)
+    #         fpath = INTERIM_DATA_PATH + "encodings/part/" + str(i) + "/chunk_" + str(start) + ".pkl"
+    #         with open(fpath, 'wb') as f:
+    #             pickle.dump(encoded_chunk, f)
             
-            start += chunk_size
+    #         start += chunk_size
 
-            i+=1
-            if i % 100 == 0:
-                print("Written {} out of {} chunks".format(i, n_chunks))
 
-        # Need to come back to fix this. Encodings should be all of the pkl files
-        # with open(file, 'rb') as f:
-        #   enc = pickle.load(f)
-        # encodings += enc
-        encodings = encoded_chunk
-
-        # Creat the dataset
+    # Concatenate the chunks into whole parts
+    for i in range(len(notes)):
+        encodings = []
+        directory = INTERIM_DATA_PATH + "encodings/part/" + str(i) + "/"
+        for filename in os.listdir(directory):
+            fpath = os.path.join(directory, filename)
+            with open(fpath, "rb") as f:
+                enc = pickle.load(f)
+            encodings += enc
+        out_file = PROCESSED_DATA_PATH + "part_" + str(i) + "_encoded.pt"
         dataset = torch.tensor(encodings, dtype=torch.long)
-
-        # Split into train/test sets
-        split = int(ratio*n)
-        train = dataset[:split]
-        test = dataset[split:]
-
-        torch.save(train, train_path)
-        torch.save(test, test_path)
-    
-    return train, test
-
+        torch.save(dataset, out_file)

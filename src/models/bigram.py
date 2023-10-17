@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 from torch.nn import functional as F
 from src.datasets.utils import *
 
@@ -7,10 +8,10 @@ batch_size = 32
 context_length = 8
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-class BigramLM(torch.nn.Module):
+class BigramLM(nn.Module):
     def __init__(self, vocab_size):
         super().__init__()
-        self.token_embedding_table = torch.nn.Embedding(vocab_size, vocab_size)
+        self.token_embedding_table = nn.Embedding(vocab_size, vocab_size)
     
     def forward(self, idx, targets=None):
         logits = self.token_embedding_table(idx)
