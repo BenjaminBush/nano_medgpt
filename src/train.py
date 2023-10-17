@@ -5,6 +5,9 @@ from src.models.bigram import BigramLM
 from src.models.gpt import *
 import random
 import pickle
+import argparse
+from azureml.core.run import Run
+import glob
 
 torch.manual_seed(456123)
 
@@ -31,8 +34,21 @@ def _get_batch(df):
     x, y = x.pin_memory().to(device, non_blocking=True), y.pin_memory().to(device, non_blocking=True)
     return x, y
 
+
+def get_batch(data_folder, split="train"):
+    part_selected = 0
+    if split == "train":
+        part_selected = 0 # random.randint(0, 5)
+    else:
+        part_selected = 6
+
+    fpath = data_folder + "part_" + str(part_selected) + "_encoded.pt"
+    df = torch.load(fpath)
+    return df
+
+
 # Wrapper for _get_batch method to load the encodings
-def get_batch(dataset="train"):
+def local_get_batch(dataset="train"):
     """ 
     train ~ parts 0-5 (only part 0 for now)
     val   ~ part 6
@@ -61,7 +77,7 @@ def estimate_loss(model):
     model.train()
     return out
 
-def train_model(make_encodings=False):
+def train_model(data_folder = None, make_encodings=False):
     if make_encodings:
         make_encodings()
 
@@ -82,10 +98,11 @@ def train_model(make_encodings=False):
         # Check for model saving condition
         if losses['val'] < best_val_loss:
             best_val_loss = losses['val']
-            torch.save(model.state_dict(), MODEL_SAVE_PATH)
+            # torch.save(model.state_dict(), MODEL_SAVE_PATH)
+            torch.save(model.state_dict(), './outputs/model.pth')
 
         # Main training loop
-        xb, yb = get_batch("train")
+        xb, yb = get_batch(data_folder, "train")
         logits, loss = m(xb, yb)
         optim.zero_grad(set_to_none=True)
         loss.backward()
@@ -93,7 +110,18 @@ def train_model(make_encodings=False):
     
     print("After training, the best validation loss is {}".format(best_val_loss))
 
-if __name__ == "__main__":
-    train_model()
-    model = torch.load(MODEL_SAVE_PATH)
-    generate_text(model, max_new_tokens = 10000)
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--data-folder', type=str, help='dataset')
+args = parser.parse_args()
+
+os.makedirs('./outputs', exist_ok=True)
+data_folder = args.data_folder
+
+run = Run.get_context() 
+
+train_model(data_folder)
+# if __name__ == "__main__":
+#     train_model()
+#     model = torch.load(MODEL_SAVE_PATH)
+#     generate_text(model, max_new_tokens = 10000)
