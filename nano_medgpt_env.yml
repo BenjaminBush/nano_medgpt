@@ -36,5 +36,5 @@ dependencies:
       - jsonschema==4.19.1
       - pandas==2.1
       - torchvision==0.15.2
-      - -e https://github.com/BenjaminBush/nano_medgpt#egg=nano_medgpt
+      - -e git+https://github.com/BenjaminBush/nano_medgpt.git#egg=nano_medgpt
 prefix: C:\Users\Ben\anaconda3\envs\nano-medgpt

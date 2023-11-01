@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-from src.datasets.utils import *
+from nano_medgpt.src.datasets.utils import *
 
 torch.manual_seed(435123)
 batch_size = 32

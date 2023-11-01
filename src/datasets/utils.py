@@ -1,7 +1,7 @@
 import pandas as pd
-from definitions import *
+from nano_medgpt.definitions import *
 import re
-from src.features.features import *
+from nano_medgpt.src.features.features import *
 import torch
 import pickle
 

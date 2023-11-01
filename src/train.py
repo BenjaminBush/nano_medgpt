@@ -1,8 +1,8 @@
 import torch
 from torch.nn import functional as F
-from src.datasets.utils import *
-from src.models.bigram import BigramLM
-from src.models.gpt import *
+from nano_medgpt.src.datasets.utils import *
+from nano_medgpt.src.models.bigram import BigramLM
+from nano_medgpt.src.models.gpt import *
 import random
 import pickle
 import argparse
