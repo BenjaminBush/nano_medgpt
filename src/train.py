@@ -1,5 +1,6 @@
 import torch
 from torch.nn import functional as F
+from nano_medgpt.definitions import *
 from nano_medgpt.src.datasets.utils import *
 from nano_medgpt.src.models.bigram import BigramLM
 from nano_medgpt.src.models.gpt import *
@@ -8,16 +9,17 @@ import pickle
 import argparse
 from azureml.core.run import Run
 import glob
+import os
 
 torch.manual_seed(456123)
 
 # hyperparamters
 vocab_size = 37
-n_epochs = 100
-eval_iters = 5
-eval_interval = 5
-batch_size = 8
-context_length = 8
+n_epochs = 5000
+eval_iters = 200
+eval_interval = 500
+batch_size = 64
+context_length = 256
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 # -----------------------------------------------------
 
@@ -44,33 +46,17 @@ def get_batch(data_folder, split="train"):
 
     fpath = data_folder + "part_" + str(part_selected) + "_encoded.pt"
     df = torch.load(fpath)
-    return df
+    return _get_batch(df)
 
-
-# Wrapper for _get_batch method to load the encodings
-def local_get_batch(dataset="train"):
-    """ 
-    train ~ parts 0-5 (only part 0 for now)
-    val   ~ part 6
-    """
-    part_selected = 0
-    if dataset == "train":
-        part_selected = 0 # random.randint(0, 5)
-    else:
-        part_selected = 6
-    
-    fpath = PROCESSED_DATA_PATH + "part_" + str(part_selected) + "_encoded.pt"
-    df = torch.load(fpath)
-    return df
 
 @torch.no_grad()
-def estimate_loss(model):
+def estimate_loss(data_folder, model):
     out = {}
     model.eval()
     for split in ['train', 'val']:
         losses = torch.zeros(eval_iters)
         for k in range(eval_iters):
-            xb, yb = get_batch(split)
+            xb, yb = get_batch(data_folder = data_folder, split=split)
             logits, loss = model(xb, yb)
             losses[k] = loss.item()
         out[split] = losses.mean()
@@ -92,7 +78,7 @@ def train_model(data_folder = None, make_encodings=False):
     for i in range(n_epochs):
         # First, let's check to see if we are at an eval step
         if i % eval_interval == 0:
-            losses = estimate_loss(model)
+            losses = estimate_loss(data_folder, model)
             print("Step number {}: Training Loss: {}, Validation Loss:{}".format(i, losses['train'], losses['val']))
         
         # Check for model saving condition
@@ -102,7 +88,7 @@ def train_model(data_folder = None, make_encodings=False):
             torch.save(model.state_dict(), './outputs/model.pth')
 
         # Main training loop
-        xb, yb = get_batch(data_folder, "train")
+        xb, yb = get_batch(data_folder=data_folder, split="train")
         logits, loss = m(xb, yb)
         optim.zero_grad(set_to_none=True)
         loss.backward()

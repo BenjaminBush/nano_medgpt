@@ -1,40 +1,38 @@
-name: base
+name: nano_medgpt
 channels:
   - pytorch
   - nvidia
   - conda-forge
   - defaults
 dependencies:
-  - python=3.10
-  - pytorch=2.0.1
+  - pip=23.3.1
+  - python=3.8.18
+  - pytorch=2.1.0
   - pytorch-cuda=11.8
-  - pip=23.1
   - pip:
       - azure-common==1.1.28
-      - azure-core==1.29.4
+      - azure-core==1.29.5
       - azure-graphrbac==0.61.1
-      - azure-identity==1.14.1
+      - azure-identity==1.15.0
       - azure-mgmt-authorization==3.0.0
       - azure-mgmt-containerregistry==10.2.0
       - azure-mgmt-core==1.4.0
-      - azure-mgmt-keyvault==10.2.3
+      - azure-mgmt-keyvault==10.3.0
       - azure-mgmt-network==21.0.1
       - azure-mgmt-resource==22.0.0
       - azure-mgmt-storage==21.0.0
       - azure-storage-blob==12.18.3
       - azureml==0.2.7
       - azureml-core==1.53.0
-      - azureml-dataprep==4.12.4
+      - azureml-dataprep==4.12.6
       - azureml-dataprep-native==38.0.0
-      - azureml-dataprep-rslex==2.19.5
-      - azureml-fsspec==1.2.0
+      - azureml-dataprep-rslex==2.19.6
+      - azureml-dataset-runtime==1.53.0
       - azureml-telemetry==1.53.0
       - azureml-train==1.53.0
       - azureml-train-core==1.53.0
       - azureml-train-restclients-hyperdrive==1.53.0
-      - jsonpickle==3.0
-      - jsonschema==4.19.1
-      - pandas==2.1
-      - torchvision==0.15.2
-      - -e git+https://github.com/BenjaminBush/nano_medgpt.git#egg=nano_medgpt
-prefix: C:\Users\Ben\anaconda3\envs\nano-medgpt
+      - azureml-widgets==1.53.0
+      - pandas==2.0.3
+      # - -e git+https://github.com/BenjaminBush/nano_medgpt.git#egg=nano_medgpt
+prefix: C:\Users\Ben\anaconda3\envs\nano_medgpt
